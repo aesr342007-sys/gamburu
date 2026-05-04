@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>GAMBURU</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#080808;
+  --card:#0F0F0F;
+  --border:#1E1E1E;
+  --red:#DC2626;
+  --red2:#B91C1C;
+  --green:#22C55E;
+  --yellow:#EAB308;
+  --text:#EFEFEF;
+  --muted:#555;
+  --faint:#222;
+}
+html,body{height:100%;overflow-x:hidden}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospace}
+
+/* HEADER */
+.hdr{position:fixed;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);background:rgba(8,8,8,0.96);backdrop-filter:blur(10px);z-index:100}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:3px;color:var(--text)}
+.hdr-right{display:flex;gap:8px;align-items:center}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;background:transparent;border:1px solid var(--border);color:var(--text);padding:8px 16px;font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-radius:4px;transition:all 0.15s;white-space:nowrap}
+.btn:hover{border-color:var(--red);color:var(--red)}
+.btn-red{background:var(--red);border-color:var(--red);color:#fff}
+.btn-red:hover{background:var(--red2);border-color:var(--red2);color:#fff}
+.btn-ghost{border-color:var(--faint);color:var(--muted)}
+.btn-ghost:hover{border-color:var(--red);color:var(--red)}
+.btn-sm{padding:6px 12px;font-size:11px}
+
+/* PAGES */
+.page{display:none;padding-top:61px;min-height:100vh}
+.page.on{display:block;animation:fadeIn 0.2s ease}
+#pg-home{padding-top:0;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-left:20px;padding-right:20px}
+#pg-home.on{display:flex}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* HOME */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(64px,16vw,128px);line-height:0.9;letter-spacing:4px;color:var(--text);margin-bottom:40px}
+.hero-title .red{color:var(--red)}
+.connect-area{display:flex;flex-direction:column;align-items:center;gap:12px}
+.connect-area .btn-red{padding:14px 48px;font-size:13px;letter-spacing:2px}
+.wallet-hint{font-size:10px;color:var(--muted);letter-spacing:1px}
+
+/* DASHBOARD */
+.dash{max-width:640px;margin:0 auto;padding:28px 20px}
+.dash-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+.dash-heading{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:3px}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:14px;text-align:center}
+.stat-card .val{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--text)}
+.stat-card .lbl{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px}
+.tab{padding:10px 20px;font-size:11px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;background:transparent;border-top:none;border-left:none;border-right:none;font-family:'IBM Plex Mono',monospace;transition:all 0.15s}
+.tab:hover{color:var(--text)}
+.tab.on{color:var(--text);border-bottom-color:var(--red)}
+
+/* BET CARDS */
+.bet-card{background:var(--card);border:1px solid var(--border);border-left:3px solid transparent;border-radius:4px;padding:16px;margin-bottom:10px;cursor:pointer;transition:border-color 0.15s}
+.bet-card:hover{border-color:#333}
+.bet-card.pending{border-left-color:var(--yellow)}
+.bet-card.active{border-left-color:var(--red)}
+.bet-card.disputed{border-left-color:orange}
+.bet-card.settled{border-left-color:var(--green);opacity:0.6}
+.bet-card.cancelled{border-left-color:var(--muted);opacity:0.4}
+.bc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px}
+.bc-title{font-size:13px;font-weight:600;color:var(--text);flex:1;line-height:1.4}
+.bc-meta{display:flex;gap:14px;font-size:11px;color:var(--muted);flex-wrap:wrap}
+.bc-odds{color:var(--red)}
+.bc-winner{color:var(--green)}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:9px;letter-spacing:1px;text-transform:uppercase;white-space:nowrap}
+.badge-y{background:#1A1500;color:var(--yellow);border:1px solid #2A2000}
+.badge-r{background:#1A0000;color:var(--red);border:1px solid #2A0000}
+.badge-g{background:#001A00;color:var(--green);border:1px solid #002A00}
+.badge-o{background:#1A0D00;color:orange;border:1px solid #2A1500}
+.badge-m{background:#111;color:var(--muted);border:1px solid #222}
+
+.empty{text-align:center;padding:60px 20px;color:var(--faint);font-size:12px;letter-spacing:2px;text-transform:uppercase}
+
+/* WALLET PILL */
+.wallet-pill{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:6px 12px;font-size:11px;color:var(--muted)}
+
+/* FORM */
+.form-wrap{max-width:640px;margin:0 auto;padding:28px 20px}
+.back-btn{background:transparent;border:none;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;cursor:pointer;padding:0;margin-bottom:20px;display:flex;align-items:center;gap:6px;transition:color 0.15s}
+.back-btn:hover{color:var(--text)}
+.form-card{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:24px}
+.form-title{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:3px;margin-bottom:24px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 12px;font-family:'IBM Plex Mono',monospace;font-size:13px;border-radius:4px;outline:none;transition:border-color 0.15s}
+.input:focus{border-color:var(--red)}
+.input::placeholder{color:#333}
+.row{display:flex;gap:12px}
+.row .field{flex:1}
+.colon{display:flex;align-items:flex-end;padding-bottom:11px;color:#333;font-size:20px;flex-shrink:0}
+.summary{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:14px;margin:20px 0}
+.sum-hd{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.sum-row{display:flex;justify-content:space-between;padding:5px 0;font-size:12px}
+.sum-k{color:var(--muted)}
+.sum-v{color:var(--text)}
+.sum-win{color:var(--green)}
+.form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+
+/* DETAIL */
+.detail-wrap{max-width:640px;margin:0 auto;padding:28px 20px}
+.detail-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:16px;margin-bottom:12px}
+.detail-card-hd{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px}
+.dr{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #111;font-size:12px}
+.dr:last-child{border-bottom:none}
+.dk{color:var(--muted)}
+.dv{color:var(--text);text-align:right;max-width:60%}
+
+.win-banner{background:#001A00;border:1px solid var(--green);border-radius:4px;padding:20px;text-align:center;margin-bottom:14px}
+.win-banner h2{font-family:'Bebas Neue',sans-serif;font-size:44px;letter-spacing:4px;color:var(--green)}
+.win-banner p{font-size:12px;color:var(--green);opacity:0.7;margin-top:4px}
+
+.share-card{background:var(--bg);border:1px solid var(--yellow);border-radius:4px;padding:16px;margin-bottom:12px}
+.share-hd{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--yellow);margin-bottom:6px}
+.share-url{background:var(--card);border:1px solid var(--border);border-radius:3px;padding:10px 12px;font-size:11px;color:var(--muted);margin-top:10px;word-break:break-all}
+
+.arbiter-card{background:var(--bg);border:1px solid var(--red);border-radius:4px;padding:20px;margin-bottom:12px}
+.arb-hd{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;margin-bottom:4px}
+.arb-sub{font-size:11px;color:var(--muted);margin-bottom:16px;line-height:1.6}
+.resolve-btns{display:flex;gap:10px}
+.resolve-btn{flex:1;padding:13px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-radius:4px;background:#001A00;border:1px solid var(--green);color:var(--green);transition:all 0.15s}
+.resolve-btn:hover{background:var(--green);color:#000}
+
+.submit-card{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:20px;margin-bottom:12px}
+.submit-hd{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;margin-bottom:6px}
+.submit-sub{font-size:11px;color:var(--muted);margin-bottom:16px;line-height:1.6}
+.submit-btns{display:flex;gap:10px}
+.submit-btn{flex:1;padding:13px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-radius:4px;transition:all 0.15s}
+.submit-btn-1{background:#1A0000;border:1px solid var(--red);color:var(--red)}
+.submit-btn-1:hover{background:var(--red);color:#fff}
+.submit-btn-2{background:#00001A;border:1px solid #3B82F6;color:#3B82F6}
+.submit-btn-2:hover{background:#3B82F6;color:#fff}
+.result-submitted{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:14px;font-size:12px;color:var(--muted);text-align:center;margin-bottom:12px}
+.result-submitted span{color:var(--yellow)}
+
+.disputed-card{background:var(--bg);border:1px solid orange;border-radius:4px;padding:16px;margin-bottom:12px}
+.disputed-hd{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:orange;margin-bottom:6px}
+.disputed-sub{font-size:11px;color:var(--muted);line-height:1.6}
+
+@media(max-width:500px){
+  .hdr{padding:14px 16px}
+  .dash,.form-wrap,.detail-wrap{padding:20px 16px}
+  .row{flex-direction:column;gap:0}
+  .colon{display:none}
+  .resolve-btns,.submit-btns{flex-direction:column}
+  .form-actions{flex-direction:column-reverse}
+  .form-actions .btn{width:100%}
+  .tabs .tab{padding:10px 12px;font-size:10px}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="logo">GAMBURU</div>
+  <div class="hdr-right" id="hdr-right">
+    <button class="btn btn-red" onclick="connectWallet()">CONNECT WALLET</button>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="page" id="pg-home">
+  <div class="hero">
+    <div class="hero-title">
+      GAMBLE ON<br>ANYTHING<br>WITH <span class="red">ANYONE.</span><br>PEER TO PEER.
+    </div>
+    <div class="connect-area">
+      <button class="btn btn-red" onclick="connectWallet()">CONNECT WALLET</button>
+      <div class="wallet-hint">PHANTOM · BACKPACK · SOLFLARE</div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="page" id="pg-dash">
+  <div class="dash">
+    <div class="dash-top">
+      <div class="dash-heading">YOUR BETS</div>
+      <button class="btn btn-red" onclick="showPage('create')">+ NEW BET</button>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="val" id="cnt-p">0</div><div class="lbl">Pending</div></div>
+      <div class="stat-card"><div class="val" id="cnt-a">0</div><div class="lbl">Active</div></div>
+      <div class="stat-card"><div class="val" id="cnt-s">0</div><div class="lbl">Settled</div></div>
+    </div>
+    <div class="tabs">
+      <button class="tab on" onclick="filterBets('all',this)">ALL</button>
+      <button class="tab" onclick="filterBets('pending',this)">PENDING</button>
+      <button class="tab" onclick="filterBets('active',this)">ACTIVE</button>
+      <button class="tab" onclick="filterBets('disputed',this)">DISPUTED</button>
+      <button class="tab" onclick="filterBets('settled',this)">SETTLED</button>
+    </div>
+    <div id="bet-list"></div>
+  </div>
+</div>
+
+<!-- CREATE BET -->
+<div class="page" id="pg-create">
+  <div class="form-wrap">
+    <button class="back-btn" onclick="showPage('dash')">← BACK</button>
+    <div class="form-card">
+      <div class="form-title">NEW BET</div>
+      <div class="field"><label>Bet Name</label><input class="input" id="f-title" placeholder="e.g. Lars vs Chen — Copenhagen Invitational"></div>
+      <div class="row">
+        <div class="field"><label>Side 1 — Your Pick</label><input class="input" id="f-s1" placeholder="Fighter / Team / Option A"></div>
+        <div class="field"><label>Side 2 — Their Pick</label><input class="input" id="f-s2" placeholder="Fighter / Team / Option B"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Side 1 wins if...</label><input class="input" id="f-c1" placeholder="Wins by any method"></div>
+        <div class="field"><label>Side 2 wins if...</label><input class="input" id="f-c2" placeholder="Wins or draw"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Odds — Side 1</label><input class="input" id="f-o1" type="number" min="1" value="3" oninput="calcSummary()"></div>
+        <div class="colon">:</div>
+        <div class="field"><label>Odds — Side 2</label><input class="input" id="f-o2" type="number" min="1" value="1" oninput="calcSummary()"></div>
+      </div>
+      <div class="field"><label>Your Stake (SOL)</label><input class="input" id="f-amt" type="number" step="0.01" placeholder="0.5" oninput="calcSummary()"></div>
+      <div class="summary" id="summary">
+        <div class="sum-hd">BET SUMMARY</div>
+        <div class="sum-row"><span class="sum-k">Your stake</span><span class="sum-v">— SOL</span></div>
+        <div class="sum-row"><span class="sum-k">Counterparty stake</span><span class="sum-v">— SOL</span></div>
+        <div class="sum-row"><span class="sum-k">Your payout if you win</span><span class="sum-win">— SOL</span></div>
+        <div class="sum-row"><span class="sum-k">Arbiter fee</span><span class="sum-v">2%</span></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost" onclick="showPage('dash')">CANCEL</button>
+        <button class="btn btn-red" onclick="createBet()">LOCK & DEPLOY →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL -->
+<div class="page" id="pg-detail">
+  <div class="detail-wrap" id="detail-inner"></div>
+</div>
+
+<script>
+const S={
+  wallet:null,
+  filter:'all',
+  // mock wallet — in production this is the arbiter pubkey
+  arbiterWallet:'8xKp...3mRv',
+  bets:[
+    {id:1,title:'Lars Hansen vs Wei Chen — Copenhagen Invitational',s1:'Lars Hansen',s2:'Wei Chen',o:'3:1',on:3,od:1,amt:.5,pot:.5,c1:'Lars wins by KO, TKO, or decision',c2:'Wei wins or draw',status:'pending',creator:'8xKp...3mRv',cp:null,winner:null,r1:null,r2:null},
+    {id:2,title:'Somchai vs Martinez — Rajadamnern Stadium',s1:'Somchai',s2:'Carlos Martinez',o:'2:1',on:2,od:1,amt:1.2,pot:3.6,c1:'Somchai wins',c2:'Martinez wins or draw',status:'active',creator:'8xKp...3mRv',cp:'4qNj...7yTx',winner:null,r1:null,r2:null},
+    {id:3,title:'Alex vs Reade — Who pays for dinner',s1:'Alex',s2:'Reade',o:'1:1',on:1,od:1,amt:.2,pot:.4,c1:'Alex wins the coin flip',c2:'Reade wins the coin flip',status:'disputed',creator:'8xKp...3mRv',cp:'4qNj...7yTx',winner:null,r1:1,r2:2},
+    {id:4,title:'Buakaw vs Lerdsila — Thai Fight Grand Prix',s1:'Buakaw',s2:'Lerdsila',o:'1:2',on:1,od:2,amt:2,pot:6,c1:'Buakaw wins',c2:'Lerdsila wins or draw',status:'settled',creator:'8xKp...3mRv',cp:'9pLm...2kQs',winner:'Lerdsila',r1:2,r2:2},
+  ]
+};
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.getElementById('pg-'+id).classList.add('on');
+  if(id==='dash'){renderBets();updateCounters();}
+}
+
+function connectWallet(){
+  S.wallet='8xKp...3mRv';
+  document.getElementById('hdr-right').innerHTML=`
+    <div class="wallet-pill">${S.wallet}</div>
+    <button class="btn btn-red btn-sm" onclick="showPage('create')">+ NEW BET</button>`;
+  showPage('dash');
+}
+
+function updateCounters(){
+  document.getElementById('cnt-p').textContent=S.bets.filter(b=>b.status==='pending').length;
+  document.getElementById('cnt-a').textContent=S.bets.filter(b=>['active','disputed'].includes(b.status)).length;
+  document.getElementById('cnt-s').textContent=S.bets.filter(b=>b.status==='settled').length;
+}
+
+function filterBets(f,el){
+  S.filter=f;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  renderBets();
+}
+
+function badgeClass(status){
+  return{pending:'badge-y',active:'badge-r',disputed:'badge-o',settled:'badge-g',cancelled:'badge-m'}[status]||'badge-m';
+}
+
+function renderBets(){
+  const list=document.getElementById('bet-list');
+  const bets=S.filter==='all'?S.bets:S.bets.filter(b=>b.status===S.filter);
+  if(!bets.length){list.innerHTML='<div class="empty">NO BETS FOUND</div>';return;}
+  list.innerHTML=bets.map(b=>`
+    <div class="bet-card ${b.status}" onclick="openDetail(${b.id})">
+      <div class="bc-top">
+        <div class="bc-title">${b.title}</div>
+        <span class="badge ${badgeClass(b.status)}">${b.status}</span>
+      </div>
+      <div class="bc-meta">
+        <span class="bc-odds">${b.o} ODDS</span>
+        <span>${b.pot} SOL POT</span>
+        ${b.winner?`<span class="bc-winner">→ ${b.winner}</span>`:''}
+        ${b.status==='disputed'?`<span style="color:orange">DISPUTED — AWAITING ARBITER</span>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function openDetail(id){
+  const b=S.bets.find(x=>x.id===id);if(!b)return;
+  const isArbiter=S.wallet===S.arbiterWallet;
+  const isCreator=S.wallet===b.creator;
+  const isCP=S.wallet===b.cp;
+
+  let h=`<button class="back-btn" onclick="showPage('dash')">← BACK</button>`;
+
+  if(b.winner) h+=`<div class="win-banner"><h2>SETTLED</h2><p>Winner: ${b.winner}</p></div>`;
+
+  if(b.status==='disputed') h+=`
+    <div class="disputed-card">
+      <div class="disputed-hd">⚠ DISPUTED</div>
+      <div class="disputed-sub">Players submitted different results. Arbiter has been notified and will resolve this bet.</div>
+    </div>`;
+
+  h+=`
+    <div class="detail-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;flex:1;padding-right:10px">${b.title}</div>
+        <span class="badge ${badgeClass(b.status)}">${b.status}</span>
+      </div>
+      <div class="dr"><span class="dk">Side 1</span><span class="dv">${b.s1}</span></div>
+      <div class="dr"><span class="dk">Side 2</span><span class="dv">${b.s2}</span></div>
+      <div class="dr"><span class="dk">Odds</span><span class="dv" style="color:var(--red)">${b.o}</span></div>
+      <div class="dr"><span class="dk">Total Pot</span><span class="dv">${b.pot} SOL</span></div>
+      <div class="dr"><span class="dk">Creator</span><span class="dv">${b.creator}</span></div>
+      ${b.cp?`<div class="dr"><span class="dk">Counterparty</span><span class="dv">${b.cp}</span></div>`:''}
+      <div class="dr"><span class="dk">Arbiter</span><span class="dv">gamburu.sol</span></div>
+    </div>
+    <div class="detail-card">
+      <div class="detail-card-hd">WIN CONDITIONS</div>
+      <div class="dr"><span class="dk">${b.s1} wins if...</span><span class="dv">${b.c1}</span></div>
+      <div class="dr"><span class="dk">${b.s2} wins if...</span><span class="dv">${b.c2}</span></div>
+    </div>`;
+
+  // Pending: share link
+  if(b.status==='pending') h+=`
+    <div class="share-card">
+      <div class="share-hd">⏳ WAITING FOR COUNTERPARTY</div>
+      <div style="font-size:11px;color:var(--muted)">Share this link — they click it, connect wallet, accept the bet.</div>
+      <div class="share-url">gamburu.xyz/bet/${b.id}</div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-sm" onclick="navigator.clipboard.writeText('gamburu.xyz/bet/${b.id}');this.textContent='COPIED!'">COPY LINK</button>
+        <button class="btn btn-sm btn-ghost" onclick="cancelBet(${b.id})">CANCEL BET</button>
+      </div>
+    </div>`;
+
+  // Active: submit result (for participants)
+  if(b.status==='active'){
+    const myResult=isCreator?b.r1:isCP?b.r2:null;
+    if((isCreator||isCP)&&myResult===null){
+      h+=`
+        <div class="submit-card">
+          <div class="submit-hd">SUBMIT RESULT</div>
+          <div class="submit-sub">Who won? Both players submit — if you agree, bet settles instantly. If you disagree, the arbiter resolves.</div>
+          <div class="submit-btns">
+            <button class="submit-btn submit-btn-1" onclick="submitResult(${b.id},1,'${isCreator?'creator':'cp'}')">${b.s1.split(' ')[0].toUpperCase()} WON</button>
+            <button class="submit-btn submit-btn-2" onclick="submitResult(${b.id},2,'${isCreator?'creator':'cp'}')">${b.s2.split(' ')[0].toUpperCase()} WON</button>
+          </div>
+        </div>`;
+    } else if((isCreator||isCP)&&myResult!==null){
+      h+=`<div class="result-submitted">Your result submitted: <span>${myResult===1?b.s1:b.s2} won</span>. Waiting for other player...</div>`;
+    }
+  }
+
+  // Active or disputed: arbiter panel
+  if((b.status==='active'||b.status==='disputed')&&isArbiter) h+=`
+    <div class="arbiter-card">
+      <div class="arb-hd">ARBITER PANEL</div>
+      <div class="arb-sub">Verify the result and trigger payout. This action is irreversible. 2% fee goes to your wallet automatically.</div>
+      <div class="resolve-btns">
+        <button class="resolve-btn" onclick="settle(${b.id},'${b.s1}')">${b.s1.split(' ')[0].toUpperCase()} WINS →</button>
+        <button class="resolve-btn" onclick="settle(${b.id},'${b.s2}')">${b.s2.split(' ')[0].toUpperCase()} WINS →</button>
+      </div>
+    </div>`;
+
+  document.getElementById('detail-inner').innerHTML=h;
+  showPage('detail');
+}
+
+function submitResult(id,result,role){
+  const b=S.bets.find(x=>x.id===id);
+  if(role==='creator') b.r1=result;
+  else b.r2=result;
+
+  // Both submitted — check if they agree
+  if(b.r1!==null&&b.r2!==null){
+    if(b.r1===b.r2){
+      // Auto-settle
+      b.winner=result===1?b.s1:b.s2;
+      b.status='settled';
+    } else {
+      // Dispute
+      b.status='disputed';
+    }
+  }
+  updateCounters();
+  openDetail(id);
+}
+
+function settle(id,winner){
+  if(!confirm(`Confirm: ${winner} wins. Payout triggers now. Cannot be undone.`))return;
+  const b=S.bets.find(x=>x.id===id);
+  b.winner=winner;b.status='settled';
+  updateCounters();openDetail(id);
+}
+
+function cancelBet(id){
+  if(!confirm('Cancel this bet? Your SOL will be refunded.'))return;
+  const b=S.bets.find(x=>x.id===id);
+  b.status='cancelled';
+  updateCounters();showPage('dash');
+}
+
+function calcSummary(){
+  const amt=parseFloat(document.getElementById('f-amt').value);
+  const o1=parseFloat(document.getElementById('f-o1').value);
+  const o2=parseFloat(document.getElementById('f-o2').value);
+  const s1=document.getElementById('f-s1').value||'Side 1';
+  if(!amt||!o1||!o2)return;
+  const cp=(amt*o2/o1).toFixed(3);
+  const pay=(amt*o1/o2*0.98).toFixed(3);
+  document.getElementById('summary').innerHTML=`
+    <div class="sum-hd">BET SUMMARY</div>
+    <div class="sum-row"><span class="sum-k">Your stake</span><span class="sum-v">${amt} SOL</span></div>
+    <div class="sum-row"><span class="sum-k">Counterparty stake</span><span class="sum-v">${cp} SOL</span></div>
+    <div class="sum-row"><span class="sum-k">Your payout if ${s1.split(' ')[0]} wins</span><span class="sum-win">${pay} SOL</span></div>
+    <div class="sum-row"><span class="sum-k">Arbiter fee</span><span class="sum-v">2%</span></div>`;
+}
+
+function createBet(){
+  const title=document.getElementById('f-title').value;
+  const s1=document.getElementById('f-s1').value;
+  const s2=document.getElementById('f-s2').value;
+  const amt=parseFloat(document.getElementById('f-amt').value);
+  const o1=parseFloat(document.getElementById('f-o1').value)||1;
+  const o2=parseFloat(document.getElementById('f-o2').value)||1;
+  const c1=document.getElementById('f-c1').value||`${s1} wins`;
+  const c2=document.getElementById('f-c2').value||`${s2} wins`;
+  if(!title||!s1||!s2||!amt){alert('Fill in all fields.');return;}
+  S.bets.unshift({
+    id:Date.now(),title,s1,s2,
+    o:`${o1}:${o2}`,on:o1,od:o2,
+    amt,pot:amt,c1,c2,
+    status:'pending',
+    creator:S.wallet,cp:null,
+    winner:null,r1:null,r2:null
+  });
+  ['f-title','f-s1','f-s2','f-c1','f-c2','f-amt'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-o1').value='3';
+  document.getElementById('f-o2').value='1';
+  document.getElementById('summary').innerHTML=`
+    <div class="sum-hd">BET SUMMARY</div>
+    <div class="sum-row"><span class="sum-k">Your stake</span><span class="sum-v">— SOL</span></div>
+    <div class="sum-row"><span class="sum-k">Counterparty stake</span><span class="sum-v">— SOL</span></div>
+    <div class="sum-row"><span class="sum-k">Your payout if you win</span><span class="sum-win">— SOL</span></div>
+    <div class="sum-row"><span class="sum-k">Arbiter fee</span><span class="sum-v">2%</span></div>`;
+  updateCounters();showPage('dash');
+}
+
+showPage('home');
+</script>
+</body>
+</html>
