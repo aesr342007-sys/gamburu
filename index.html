@@ -6,16 +6,11 @@
 <title>GAMBURU</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-:root{
-  --bg:#0A0E1A;--bg2:#0E1621;--card:#111827;--card2:#1C2333;
-  --border:#1E2D40;--border2:#243447;
-  --ton:#0098EA;--ton2:#007BC2;
-  --ton-glow:rgba(0,152,234,0.15);
-  --green:#22D3A5;--yellow:#F0B429;--red:#EF4444;
-  --text:#E8EEF7;--muted:#4A6080;--sub:#2A3F55;
-}
+:root{--bg:#0A0E1A;--bg2:#0E1621;--card:#111827;--card2:#1C2333;--border:#1E2D40;--border2:#243447;--ton:#0098EA;--ton2:#007BC2;--ton-glow:rgba(0,152,234,0.15);--green:#22D3A5;--yellow:#F0B429;--red:#EF4444;--text:#E8EEF7;--muted:#4A6080;--sub:#2A3F55}
 html,body{height:100%;overflow-x:hidden}
 body{background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospace}
 body::before{content:'';position:fixed;top:-40%;left:50%;transform:translateX(-50%);width:800px;height:600px;background:radial-gradient(ellipse at center,rgba(0,152,234,0.06) 0%,transparent 70%);pointer-events:none;z-index:0}
@@ -133,15 +128,8 @@ body::before{content:'';position:fixed;top:-40%;left:50%;transform:translateX(-5
 .disputed-banner{background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:20px;text-align:center;margin-bottom:16px}
 .disputed-banner h2{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:3px;color:var(--red)}
 .disputed-banner p{font-size:11px;color:var(--red);opacity:0.8;margin-top:8px;line-height:1.7}
-.tx-pending{background:rgba(240,180,41,0.08);border:1px solid rgba(240,180,41,0.3);border-radius:8px;padding:14px;font-size:12px;color:var(--yellow);text-align:center;margin-bottom:16px}
-@media(max-width:500px){
-  .hdr{padding:14px 16px}
-  .wrap{padding:20px 14px}
-  .row{flex-direction:column;gap:0}
-  .colon{display:none}
-  .settle-btns,.arb-btns{flex-direction:column}
-  .tabs .tab{padding:10px 10px;font-size:9px}
-}
+.loading{text-align:center;padding:40px;color:var(--muted);font-size:11px;letter-spacing:2px}
+@media(max-width:500px){.hdr{padding:14px 16px}.wrap{padding:20px 14px}.row{flex-direction:column;gap:0}.colon{display:none}.settle-btns,.arb-btns{flex-direction:column}.tabs .tab{padding:10px 10px;font-size:9px}}
 </style>
 </head>
 <body>
@@ -161,10 +149,7 @@ body::before{content:'';position:fixed;top:-40%;left:50%;transform:translateX(-5
 
 <div class="page" id="pg-dash">
   <div class="wrap">
-    <div class="dash-top">
-      <div class="dash-heading">YOUR BETS</div>
-      <button class="btn btn-ton" onclick="showPage('create')">+ NEW BET</button>
-    </div>
+    <div class="dash-top"><div class="dash-heading">YOUR BETS</div><button class="btn btn-ton" onclick="showPage('create')">+ NEW BET</button></div>
     <div class="stats">
       <div class="stat"><div class="v" id="cnt-p">0</div><div class="l">Pending</div></div>
       <div class="stat"><div class="v" id="cnt-a">0</div><div class="l">Active</div></div>
@@ -188,8 +173,8 @@ body::before{content:'';position:fixed;top:-40%;left:50%;transform:translateX(-5
       <div class="card-title">NEW BET</div>
       <div class="field"><label>Bet Name</label><input class="input" id="f-title" placeholder="e.g. Red corner 6yr old vs Blue corner 7yr old"></div>
       <div class="row">
-        <div class="field"><label>Your pick (Side 1)</label><input class="input" id="f-s1" placeholder="Red corner 6 year old"></div>
-        <div class="field"><label>Their pick (Side 2)</label><input class="input" id="f-s2" placeholder="Blue corner 7 year old"></div>
+        <div class="field"><label>Your pick (Side 1)</label><input class="input" id="f-s1" placeholder="Red corner"></div>
+        <div class="field"><label>Their pick (Side 2)</label><input class="input" id="f-s2" placeholder="Blue corner"></div>
       </div>
       <div class="row">
         <div class="field"><label>Side 1 wins if...</label><input class="input" id="f-c1" placeholder="Wins by any method"></div>
@@ -225,7 +210,7 @@ body::before{content:'';position:fixed;top:-40%;left:50%;transform:translateX(-5
     </div>
     <div class="slip-box">
       <div class="slip-hd">📋 SEND THIS LINK TO YOUR OPPONENT</div>
-      <div class="slip-sub">They open it, see your challenge, connect their TON wallet and call the bet. Once they accept — funds lock on-chain and the bet is live.</div>
+      <div class="slip-sub">They open it, see your challenge, connect their TON wallet and call the bet. Once they accept — funds lock on-chain.</div>
       <div class="slip-url" id="slip-url-text"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-ton" id="copy-btn" onclick="copyLink()">COPY LINK</button>
@@ -237,7 +222,7 @@ body::before{content:'';position:fixed;top:-40%;left:50%;transform:translateX(-5
 </div>
 
 <div class="page" id="pg-accept">
-  <div class="wrap" id="accept-inner"></div>
+  <div class="wrap" id="accept-inner"><div class="loading">LOADING BET...</div></div>
 </div>
 
 <div class="page" id="pg-detail">
@@ -245,89 +230,107 @@ body::before{content:'';position:fixed;top:-40%;left:50%;transform:translateX(-5
 </div>
 
 <script>
-// ── CONTRACT ADDRESS (testnet) ─────────────────────
+// ── FIREBASE CONFIG ────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyDFhbyyRjKJDwAlxLXF0pREfKwTBQ86uRA",
+  authDomain: "gamburu.firebaseapp.com",
+  projectId: "gamburu",
+  storageBucket: "gamburu.firebasestorage.app",
+  messagingSenderId: "390601084557",
+  appId: "1:390601084557:web:563a8d1171b7afdf0d5cc4"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ── CONTRACT ───────────────────────────────────────
 const CONTRACT_ADDRESS = 'EQC5VS0Jl8T-HuBSA1e0t8XZRPilyq4Y50jDxoqKgdU3Q2bY';
 const ARBITER_ADDRESS = 'UQBdmD9EzINSYYvXd6P8j-UrS7B6VRB3qUfI_mhHKBVYC3uk';
-const NETWORK = 'testnet';
 
-// ── TON CONNECT SETUP ──────────────────────────────
+// ── TON CONNECT ────────────────────────────────────
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: 'https://gamburu.xyz/tonconnect-manifest.json',
   buttonRootId: 'ton-connect-btn'
 });
 
-// ── STORAGE ────────────────────────────────────────
-function save(){try{localStorage.setItem('gbr_ton',JSON.stringify(S.bets))}catch(e){}}
-function load(){try{const d=localStorage.getItem('gbr_ton');if(d)S.bets=JSON.parse(d)}catch(e){}}
-
 // ── STATE ──────────────────────────────────────────
-const S={
-  wallet:null,
-  filter:'all',
-  pendingAcceptId:null,
-  bets:[]
-};
+const S = { wallet: null, filter: 'all', pendingAcceptId: null, bets: [] };
 
-// ── WALLET CONNECTION ──────────────────────────────
+// ── WALLET ─────────────────────────────────────────
 tonConnectUI.onStatusChange(wallet => {
-  if(wallet){
+  if(wallet) {
     S.wallet = wallet.account.address;
     const short = S.wallet.slice(0,6)+'...'+S.wallet.slice(-4);
-    document.getElementById('hdr-right').innerHTML=`
+    document.getElementById('hdr-right').innerHTML = `
       <div class="wallet-pill">${short}</div>
       <button class="btn btn-ton btn-sm" onclick="showPage('create')">+ NEW BET</button>`;
     if(S.pendingAcceptId) renderAcceptPage(S.pendingAcceptId);
-    else if(document.getElementById('pg-home').classList.contains('on')) showPage('dash');
-    updateCounters();
+    else if(document.getElementById('pg-home').classList.contains('on')) {
+      loadBets().then(()=>showPage('dash'));
+    }
   } else {
     S.wallet = null;
-    document.getElementById('hdr-right').innerHTML=`<div id="ton-connect-btn"></div>`;
+    document.getElementById('hdr-right').innerHTML = '<div id="ton-connect-btn"></div>';
   }
 });
 
-function connectWallet(){
-  tonConnectUI.openModal();
+function connectWallet(){ tonConnectUI.openModal() }
+function getBase(){ return 'https://gamburu.xyz' }
+
+// ── FIREBASE BET OPS ───────────────────────────────
+async function saveBet(bet) {
+  await db.collection('bets').doc(bet.id).set(bet);
 }
 
-function getBase(){return'https://gamburu.xyz'}
+async function loadBets() {
+  const snap = await db.collection('bets').orderBy('createdAt','desc').limit(50).get();
+  S.bets = snap.docs.map(d => d.data());
+  renderBets();
+  updateCounters();
+}
+
+async function getBet(id) {
+  const doc = await db.collection('bets').doc(id).get();
+  return doc.exists ? doc.data() : null;
+}
+
+async function updateBet(id, updates) {
+  await db.collection('bets').doc(id).update(updates);
+  const idx = S.bets.findIndex(b=>b.id===id);
+  if(idx>=0) S.bets[idx] = {...S.bets[idx], ...updates};
+}
 
 // ── PAGES ──────────────────────────────────────────
-function showPage(id){
+function showPage(id) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.getElementById('pg-'+id).classList.add('on');
   window.scrollTo(0,0);
-  if(id==='dash'){renderBets();updateCounters()}
+  if(id==='dash'){ loadBets() }
 }
 
-function goHome(){S.wallet?showPage('dash'):showPage('home')}
+function goHome(){ S.wallet ? showPage('dash') : showPage('home') }
 
-// ── COUNTERS ───────────────────────────────────────
-function updateCounters(){
-  document.getElementById('cnt-p').textContent=S.bets.filter(b=>b.status==='pending').length;
-  document.getElementById('cnt-a').textContent=S.bets.filter(b=>['active','disputed'].includes(b.status)).length;
-  document.getElementById('cnt-s').textContent=S.bets.filter(b=>b.status==='settled').length;
+function updateCounters() {
+  document.getElementById('cnt-p').textContent = S.bets.filter(b=>b.status==='pending').length;
+  document.getElementById('cnt-a').textContent = S.bets.filter(b=>['active','disputed'].includes(b.status)).length;
+  document.getElementById('cnt-s').textContent = S.bets.filter(b=>b.status==='settled').length;
 }
 
-// ── BET LIST ───────────────────────────────────────
-function filterBets(f,el){
+function filterBets(f,el) {
   S.filter=f;
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   el.classList.add('on');
   renderBets();
 }
 
-function bc(s){return{pending:'badge-y',active:'badge-b',disputed:'badge-r',settled:'badge-g',cancelled:'badge-m'}[s]||'badge-m'}
+function bc(s){ return {pending:'badge-y',active:'badge-b',disputed:'badge-r',settled:'badge-g',cancelled:'badge-m'}[s]||'badge-m' }
 
-function renderBets(){
-  const el=document.getElementById('bet-list');
-  const list=S.filter==='all'?S.bets:S.bets.filter(b=>b.status===S.filter);
-  if(!list.length){el.innerHTML='<div class="empty">NO BETS YET</div>';return}
-  el.innerHTML=list.map(b=>`
+function renderBets() {
+  const el = document.getElementById('bet-list');
+  const list = S.filter==='all' ? S.bets : S.bets.filter(b=>b.status===S.filter);
+  if(!list.length){ el.innerHTML='<div class="empty">NO BETS YET</div>'; return }
+  el.innerHTML = list.map(b=>`
     <div class="bet-card ${b.status}" onclick="openDetail('${b.id}')">
-      <div class="bc-top">
-        <div class="bc-title">${b.title}</div>
-        <span class="badge ${bc(b.status)}">${b.status}</span>
-      </div>
+      <div class="bc-top"><div class="bc-title">${b.title}</div><span class="badge ${bc(b.status)}">${b.status}</span></div>
       <div class="bc-meta">
         <span class="bc-odds">${b.o} ODDS</span>
         <span>${b.pot} TON POT</span>
@@ -338,12 +341,12 @@ function renderBets(){
 }
 
 // ── CREATE BET ─────────────────────────────────────
-function calcSummary(){
+function calcSummary() {
   const amt=parseFloat(document.getElementById('f-amt').value);
   const o1=parseFloat(document.getElementById('f-o1').value)||1;
   const o2=parseFloat(document.getElementById('f-o2').value)||1;
   const s1=document.getElementById('f-s1').value||'Side 1';
-  if(!amt)return;
+  if(!amt) return;
   const cpAmt=(amt*o2/o1).toFixed(3);
   const payout=(amt*(1+o2/o1)*0.98).toFixed(3);
   document.getElementById('f-summary').innerHTML=`
@@ -354,8 +357,8 @@ function calcSummary(){
     <div class="sum-row"><span class="sum-k">Gamburu fee</span><span class="sum-v">2%</span></div>`;
 }
 
-async function createBet(){
-  if(!S.wallet){alert('Connect your wallet first.');return}
+async function createBet() {
+  if(!S.wallet){ alert('Connect your wallet first.'); return }
   const title=document.getElementById('f-title').value.trim();
   const s1=document.getElementById('f-s1').value.trim();
   const s2=document.getElementById('f-s2').value.trim();
@@ -364,44 +367,37 @@ async function createBet(){
   const o2=parseFloat(document.getElementById('f-o2').value)||1;
   const c1=document.getElementById('f-c1').value.trim()||`${s1} wins`;
   const c2=document.getElementById('f-c2').value.trim()||`${s2} wins`;
-  if(!title||!s1||!s2||!amt){alert('Please fill in all fields.');return}
+  if(!title||!s1||!s2||!amt){ alert('Please fill in all fields.'); return }
 
-  const id='b'+Date.now();
-  const cpAmt=parseFloat((amt*o2/o1).toFixed(4));
-  const amtNano=BigInt(Math.round(amt*1e9));
+  const id = 'b'+Date.now();
+  const cpAmt = parseFloat((amt*o2/o1).toFixed(4));
 
   try {
-    // Send TON transaction to contract
     await tonConnectUI.sendTransaction({
       validUntil: Math.floor(Date.now()/1000)+360,
-      messages:[{
-        address: CONTRACT_ADDRESS,
-        amount: amtNano.toString(),
-        payload: btoa(JSON.stringify({op:'create_bet',betId:id,side1:s1,side2:s2,arbiter:ARBITER_ADDRESS,creatorStake:amtNano.toString(),counterpartyStake:BigInt(Math.round(cpAmt*1e9)).toString()}))
-      }]
+      messages:[{ address: CONTRACT_ADDRESS, amount: String(Math.round(amt*1e9)) }]
     });
 
-    // Save bet locally
-    S.bets.unshift({id,title,s1,s2,o:`${o1}:${o2}`,on:o1,od:o2,amt,cpAmt,pot:amt,c1,c2,status:'pending',creator:S.wallet,cp:null,winner:null,r1:null,r2:null});
-    save();
+    const bet = {id,title,s1,s2,o:`${o1}:${o2}`,on:o1,od:o2,amt,cpAmt,pot:amt,c1,c2,
+      status:'pending',creator:S.wallet,cp:null,winner:null,r1:null,r2:null,
+      createdAt: Date.now()};
+
+    await saveBet(bet);
+    S.bets.unshift(bet);
+
     ['f-title','f-s1','f-s2','f-c1','f-c2','f-amt'].forEach(i=>document.getElementById(i).value='');
     document.getElementById('f-o1').value='1';
     document.getElementById('f-o2').value='1';
     showSlip(id);
-  } catch(e){
-    if(e.message&&e.message.includes('User rejects')){
-      alert('Transaction cancelled.');
-    } else {
-      console.error(e);
-      alert('Transaction failed. Make sure you have enough TON.');
-    }
+  } catch(e) {
+    if(!e.message?.includes('rejects')) alert('Transaction failed. Make sure you have enough TON.');
   }
 }
 
 // ── BET SLIP ───────────────────────────────────────
-function showSlip(id){
-  const b=S.bets.find(x=>x.id===id);if(!b)return;
-  const url=`${getBase()}?accept=${b.id}`;
+function showSlip(id) {
+  const b = S.bets.find(x=>x.id===id); if(!b) return;
+  const url = `${getBase()}?accept=${b.id}`;
   document.getElementById('slip-vs').innerHTML=`
     <div class="vs-block">
       <div class="vs-side"><div class="vs-name">${b.s1}</div><div class="vs-label">Your pick</div></div>
@@ -414,38 +410,43 @@ function showSlip(id){
     <div class="dr"><span class="dk">Opponent stakes</span><span class="dv">${b.cpAmt} TON</span></div>
     <div class="dr"><span class="dk">If ${b.s1} wins...</span><span class="dv">${b.c1}</span></div>
     <div class="dr"><span class="dk">If ${b.s2} wins...</span><span class="dv">${b.c2}</span></div>`;
-  document.getElementById('slip-url-text').textContent=url;
+  document.getElementById('slip-url-text').textContent = url;
   showPage('slip');
 }
 
-function copyLink(){
-  const url=document.getElementById('slip-url-text').textContent;
+function copyLink() {
+  const url = document.getElementById('slip-url-text').textContent;
   navigator.clipboard.writeText(url).then(()=>{
     const btn=document.getElementById('copy-btn');
-    btn.textContent='✓ COPIED!';
-    btn.style.background='var(--green)';btn.style.borderColor='var(--green)';btn.style.color='#000';
+    btn.textContent='✓ COPIED!'; btn.style.background='var(--green)'; btn.style.borderColor='var(--green)'; btn.style.color='#000';
     setTimeout(()=>{btn.textContent='COPY LINK';btn.style.background='';btn.style.borderColor='';btn.style.color=''},2500);
   });
 }
 
-function shareToTelegram(){
-  const url=document.getElementById('slip-url-text').textContent;
-  const b=S.bets[0];
-  const text=b?`🎯 I challenged you on GAMBURU\n${b.s1} vs ${b.s2}\nOdds: ${b.o} · Pot: ${b.pot} TON\n\nAccept here:`:`🎯 GAMBURU challenge:`;
+function shareToTelegram() {
+  const url = document.getElementById('slip-url-text').textContent;
+  const b = S.bets[0];
+  const text = b ? `🎯 I challenged you on GAMBURU\n${b.s1} vs ${b.s2}\nOdds: ${b.o} · Pot: ${b.pot} TON\n\nAccept here:` : '🎯 GAMBURU challenge:';
   window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,'_blank');
 }
 
 // ── ACCEPT PAGE ────────────────────────────────────
-function renderAcceptPage(id){
-  const b=S.bets.find(x=>x.id===id);
-  const el=document.getElementById('accept-inner');
-  if(!b){el.innerHTML=`<div class="empty" style="padding-top:80px">BET NOT FOUND</div>`;showPage('accept');return}
+async function renderAcceptPage(id) {
+  const el = document.getElementById('accept-inner');
+  el.innerHTML = '<div class="loading">LOADING BET...</div>';
+  showPage('accept');
+
+  let b = S.bets.find(x=>x.id===id);
+  if(!b) b = await getBet(id);
+
+  if(!b){ el.innerHTML=`<div class="empty" style="padding-top:80px">BET NOT FOUND</div>`; return }
   if(b.status!=='pending'){
-    el.innerHTML=`<div class="empty" style="padding-top:80px">BET ALREADY ${b.status.toUpperCase()}</div>`;
-    showPage('accept');return;
+    el.innerHTML=`<div class="empty" style="padding-top:80px">BET ALREADY ${b.status.toUpperCase()}</div>`; return
   }
-  const creatorShort=b.creator?b.creator.slice(0,6)+'...':'someone';
-  const payout=parseFloat((b.cpAmt*(1+b.on/b.od)*0.98).toFixed(4));
+
+  const creatorShort = b.creator ? b.creator.slice(0,6)+'...' : 'someone';
+  const payout = parseFloat((b.cpAmt*(1+b.on/b.od)*0.98).toFixed(4));
+
   el.innerHTML=`
     <div class="challenge-banner">
       <div class="challenge-from">🎯 ${creatorShort} has challenged you</div>
@@ -472,43 +473,47 @@ function renderAcceptPage(id){
       </div>
     </div>
     <button class="btn btn-green btn-full" style="margin-bottom:10px" onclick="acceptBet('${b.id}')">
-      ${S.wallet?`ACCEPT — LOCK ${b.cpAmt} TON →`:'CONNECT WALLET TO ACCEPT →'}
+      ${S.wallet ? `ACCEPT — LOCK ${b.cpAmt} TON →` : 'CONNECT WALLET TO ACCEPT →'}
     </button>
     <div style="text-align:center;font-size:10px;color:var(--muted);letter-spacing:1px">By accepting you agree the arbiter decision is final.</div>`;
-  showPage('accept');
 }
 
-async function acceptBet(id){
-  if(!S.wallet){connectWallet();S.pendingAcceptId=id;return}
-  const b=S.bets.find(x=>x.id===id);if(!b)return;
-  if(b.creator===S.wallet){alert("Can't accept your own bet.");return}
-  const cpNano=BigInt(Math.round(b.cpAmt*1e9));
+async function acceptBet(id) {
+  if(!S.wallet){ connectWallet(); S.pendingAcceptId=id; return }
+  let b = S.bets.find(x=>x.id===id);
+  if(!b) b = await getBet(id);
+  if(!b) return;
+  if(b.creator===S.wallet){ alert("Can't accept your own bet."); return }
+
   try {
     await tonConnectUI.sendTransaction({
-      validUntil:Math.floor(Date.now()/1000)+360,
-      messages:[{
-        address:CONTRACT_ADDRESS,
-        amount:cpNano.toString(),
-        payload:btoa(JSON.stringify({op:'accept_bet',betId:id}))
-      }]
+      validUntil: Math.floor(Date.now()/1000)+360,
+      messages:[{ address: CONTRACT_ADDRESS, amount: String(Math.round(b.cpAmt*1e9)) }]
     });
-    b.cp=S.wallet;b.pot=parseFloat((b.amt+b.cpAmt).toFixed(4));b.status='active';
-    S.pendingAcceptId=null;save();openDetail(b.id);
-  } catch(e){
+    const updates = { cp: S.wallet, pot: parseFloat((b.amt+b.cpAmt).toFixed(4)), status: 'active' };
+    await updateBet(id, updates);
+    S.pendingAcceptId = null;
+    openDetail(id);
+  } catch(e) {
     if(!e.message?.includes('rejects')) alert('Transaction failed.');
   }
 }
 
-// ── BET DETAIL ─────────────────────────────────────
-function openDetail(id){
-  const b=S.bets.find(x=>x.id===id);if(!b)return;
-  const isCreator=S.wallet===b.creator;
-  const isCP=S.wallet===b.cp;
-  const isParticipant=isCreator||isCP;
-  const isArb=S.wallet===ARBITER_ADDRESS;
-  let h=`<button class="back" onclick="showPage('dash')">← BACK</button>`;
+// ── DETAIL ─────────────────────────────────────────
+async function openDetail(id) {
+  let b = S.bets.find(x=>x.id===id);
+  if(!b) b = await getBet(id);
+  if(!b) return;
+
+  const isCreator = S.wallet===b.creator;
+  const isCP = S.wallet===b.cp;
+  const isParticipant = isCreator||isCP;
+  const isArb = S.wallet===ARBITER_ADDRESS;
+
+  let h = `<button class="back" onclick="showPage('dash')">← BACK</button>`;
   if(b.status==='settled') h+=`<div class="win-banner"><h2>SETTLED ✓</h2><p>Winner: <strong>${b.winner}</strong></p></div>`;
   if(b.status==='disputed') h+=`<div class="disputed-banner"><h2>⚠ DISPUTED</h2><p>Players submitted different results.<br>Funds frozen. Awaiting arbiter.</p></div>`;
+
   h+=`
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:16px">
@@ -525,6 +530,7 @@ function openDetail(id){
       <div class="dr"><span class="dk">If ${b.s1} wins...</span><span class="dv">${b.c1}</span></div>
       <div class="dr"><span class="dk">If ${b.s2} wins...</span><span class="dv">${b.c2}</span></div>
     </div>`;
+
   if(b.status==='pending'&&isCreator) h+=`
     <div class="slip-box">
       <div class="slip-hd">📋 WAITING FOR OPPONENT</div>
@@ -536,9 +542,10 @@ function openDetail(id){
         <button class="btn btn-ghost" onclick="cancelBet('${b.id}')">CANCEL BET</button>
       </div>
     </div>`;
-  if(b.status==='active'&&isParticipant){
-    const myResult=isCreator?b.r1:b.r2;
-    if(myResult===null){
+
+  if(b.status==='active'&&isParticipant) {
+    const myResult = isCreator ? b.r1 : b.r2;
+    if(myResult===null) {
       h+=`
         <div class="settle-box">
           <div class="settle-hd">WHO WON?</div>
@@ -552,73 +559,86 @@ function openDetail(id){
       h+=`<div class="submitted-notice">You submitted: <strong>${myResult===1?b.s1:b.s2} won</strong><br>Waiting for other player...</div>`;
     }
   }
+
   if((b.status==='active'||b.status==='disputed')&&isArb) h+=`
     <div class="arb-box">
       <div class="arb-hd">ARBITER PANEL</div>
-      <div class="arb-sub">Verify who won and trigger payout. 2% fee goes to your wallet. Irreversible.</div>
+      <div class="arb-sub">Verify who won and trigger payout. 2% fee to your wallet. Irreversible.</div>
       <div class="arb-btns">
         <button class="arb-btn" onclick="arbSettle('${b.id}','${b.s1}')">${b.s1.toUpperCase()} WINS →</button>
         <button class="arb-btn" onclick="arbSettle('${b.id}','${b.s2}')">${b.s2.toUpperCase()} WINS →</button>
       </div>
     </div>`;
-  document.getElementById('detail-inner').innerHTML=h;
+
+  document.getElementById('detail-inner').innerHTML = h;
   showPage('detail');
 }
 
-function copyDetailLink(id,btn){
+function copyDetailLink(id,btn) {
   navigator.clipboard.writeText(`${getBase()}?accept=${id}`).then(()=>{
-    btn.textContent='✓ COPIED!';setTimeout(()=>btn.textContent='COPY LINK',2500);
+    btn.textContent='✓ COPIED!'; setTimeout(()=>btn.textContent='COPY LINK',2500);
   });
 }
 
-function shareDetailTelegram(id){
-  const b=S.bets.find(x=>x.id===id);if(!b)return;
-  const url=`${getBase()}?accept=${id}`;
-  const text=`🎯 I challenged you on GAMBURU\n${b.s1} vs ${b.s2}\nOdds: ${b.o} · Your stake: ${b.cpAmt} TON\n\nAccept here:`;
+function shareDetailTelegram(id) {
+  const b = S.bets.find(x=>x.id===id); if(!b) return;
+  const url = `${getBase()}?accept=${id}`;
+  const text = `🎯 I challenged you on GAMBURU\n${b.s1} vs ${b.s2}\nOdds: ${b.o} · Your stake: ${b.cpAmt} TON\n\nAccept here:`;
   window.open(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,'_blank');
 }
 
-async function submitResult(id,result,role){
-  const b=S.bets.find(x=>x.id===id);if(!b)return;
-  if(role==='c') b.r1=result; else b.r2=result;
-  if(b.r1!==null&&b.r2!==null){
-    if(b.r1===b.r2){
-      b.winner=result===1?b.s1:b.s2;b.status='settled';
-      save();updateCounters();openDetail(id);
-      setTimeout(()=>alert(`✅ Both agreed: ${b.winner} won!\nPayout sent.`),100);
+async function submitResult(id, result, role) {
+  let b = S.bets.find(x=>x.id===id);
+  if(!b) b = await getBet(id);
+  if(!b) return;
+
+  const updates = role==='c' ? {r1:result} : {r2:result};
+  const r1 = role==='c' ? result : b.r1;
+  const r2 = role==='p' ? result : b.r2;
+
+  if(r1!==null && r2!==null) {
+    if(r1===r2) {
+      const winner = result===1 ? b.s1 : b.s2;
+      Object.assign(updates, {r1,r2,winner,status:'settled'});
+      await updateBet(id, updates);
+      openDetail(id);
+      setTimeout(()=>alert(`✅ Both agreed: ${winner} won!\nPayout sent.`),100);
     } else {
-      b.status='disputed';save();updateCounters();openDetail(id);
+      Object.assign(updates, {r1,r2,status:'disputed'});
+      await updateBet(id, updates);
+      openDetail(id);
       setTimeout(()=>alert('⚠️ Results don\'t match. Funds frozen. Arbiter will resolve.'),100);
     }
-  } else {save();openDetail(id)}
-}
-
-async function arbSettle(id,winner){
-  if(!confirm(`Confirm: ${winner} wins. Trigger payout. Cannot be undone.`))return;
-  const b=S.bets.find(x=>x.id===id);
-  b.winner=winner;b.status='settled';
-  save();updateCounters();openDetail(id);
-}
-
-function cancelBet(id){
-  if(!confirm('Cancel? You will be refunded.'))return;
-  const b=S.bets.find(x=>x.id===id);
-  b.status='cancelled';save();updateCounters();showPage('dash');
-}
-
-// ── ROUTING ────────────────────────────────────────
-function route(){
-  const p=new URLSearchParams(window.location.search);
-  const acceptId=p.get('accept');
-  if(acceptId){
-    S.pendingAcceptId=acceptId;
-    renderAcceptPage(acceptId);
   } else {
-    S.wallet?showPage('dash'):showPage('home');
+    await updateBet(id, updates);
+    openDetail(id);
   }
 }
 
-load();
+async function arbSettle(id, winner) {
+  if(!confirm(`Confirm: ${winner} wins. Trigger payout. Cannot be undone.`)) return;
+  await updateBet(id, {winner, status:'settled'});
+  openDetail(id);
+}
+
+async function cancelBet(id) {
+  if(!confirm('Cancel? You will be refunded.')) return;
+  await updateBet(id, {status:'cancelled'});
+  showPage('dash');
+}
+
+// ── ROUTING ────────────────────────────────────────
+function route() {
+  const p = new URLSearchParams(window.location.search);
+  const acceptId = p.get('accept');
+  if(acceptId) {
+    S.pendingAcceptId = acceptId;
+    renderAcceptPage(acceptId);
+  } else {
+    S.wallet ? showPage('dash') : showPage('home');
+  }
+}
+
 route();
 </script>
 </body>
