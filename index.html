@@ -141,7 +141,7 @@ body::before{content:'';position:fixed;top:-40%;left:50%;transform:translateX(-5
   </div>
 </div>
 
-<div class="page" id="pg-home">
+<div id="meme-intro" style="position:fixed;inset:0;background:#000;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer" onclick="skipIntro()"><audio id="scream" src="Gamburu.m4a" autoplay></audio><img src="https://i.imgflip.com/4t0m5.jpg" style="width:min(380px,90vw);border-radius:8px;animation:shake 0.3s infinite"><div style="font-family:Bebas Neue,sans-serif;font-size:clamp(48px,15vw,120px);color:#DC2626;letter-spacing:4px;text-align:center;animation:shake 0.2s infinite;margin-top:20px">GAMBURUUUUUU!!!!</div><div style="font-size:12px;color:#555;margin-top:16px;letter-spacing:2px">TAP TO SKIP</div></div><style>@keyframes shake{0%,100%{transform:translateX(-3px) rotate(-1deg)}50%{transform:translateX(3px) rotate(1deg)}}</style><script>setTimeout(skipIntro,4000);function skipIntro(){const el=document.getElementById("meme-intro");if(!el)return;el.style.opacity="0";el.style.transition="opacity 0.5s";setTimeout(()=>el.remove(),500)}</script><div class="page" id="pg-home">
   <div class="hero-eyebrow">Built on TON</div>
   <div class="hero-title">GAMBLE ON<br><span class="blu">ANYTHING</span><br>WITH <span class="blu">ANYONE.</span></div>
   <button class="btn btn-ton btn-lg" onclick="connectWallet()">CONNECT TON WALLET</button>
