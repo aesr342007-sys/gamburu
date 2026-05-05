@@ -134,6 +134,72 @@ body::before{content:'';position:fixed;top:-40%;left:50%;transform:translateX(-5
 </head>
 <body>
 
+<div id="tap-gate" style="position:fixed;inset:0;background:#000;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer" onclick="startIntro()">
+<svg id="wojak-svg" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg" style="width:min(260px,70vw)">
+  <ellipse cx="100" cy="105" rx="72" ry="80" fill="#f5d6a8" stroke="#222" stroke-width="3"/>
+  <ellipse cx="30" cy="108" rx="14" ry="18" fill="#f5d6a8" stroke="#222" stroke-width="2.5"/>
+  <ellipse cx="170" cy="108" rx="14" ry="18" fill="#f5d6a8" stroke="#222" stroke-width="2.5"/>
+  <path d="M38 72 Q60 20 100 18 Q140 20 162 72" fill="#333" stroke="#222" stroke-width="2"/>
+  <ellipse cx="74" cy="98" rx="13" ry="14" fill="white" stroke="#222" stroke-width="2"/>
+  <ellipse cx="126" cy="98" rx="13" ry="14" fill="white" stroke="#222" stroke-width="2"/>
+  <circle cx="74" cy="100" r="7" fill="#1a1a1a"/>
+  <circle cx="126" cy="100" r="7" fill="#1a1a1a"/>
+  <circle cx="76" cy="97" r="2.5" fill="white"/>
+  <circle cx="128" cy="97" r="2.5" fill="white"/>
+  <ellipse cx="62" cy="116" rx="4" ry="8" fill="#6af" opacity="0.8"/>
+  <ellipse cx="138" cy="116" rx="4" ry="8" fill="#6af" opacity="0.8"/>
+  <path d="M96 118 Q100 126 104 118" fill="none" stroke="#b8860b" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M61 80 Q74 72 87 78" fill="none" stroke="#333" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M113 78 Q126 72 139 80" fill="none" stroke="#333" stroke-width="3.5" stroke-linecap="round"/>
+  <circle cx="86" cy="172" r="2" fill="#ccc" opacity="0.6"/>
+  <circle cx="100" cy="176" r="2" fill="#ccc" opacity="0.6"/>
+  <circle cx="114" cy="172" r="2" fill="#ccc" opacity="0.6"/>
+  <path d="M155 75 Q158 68 161 75 Q161 81 158 81 Q155 81 155 75" fill="#6af" opacity="0.7"/>
+</svg>
+<div id="tap-label" style="font-family:Bebas Neue,sans-serif;font-size:clamp(28px,8vw,56px);color:#555;letter-spacing:6px;margin-top:24px;animation:blinkk 1.2s infinite">TAP TO GAMBLE</div>
+<div id="scream-text" style="font-family:Bebas Neue,sans-serif;font-size:clamp(52px,14vw,120px);color:#DC2626;letter-spacing:4px;text-align:center;display:none;text-shadow:0 0 40px rgba(220,38,38,0.8)">GAMBURU!!!!</div>
+<audio id="scream-audio" src="Gamburu.m4a"></audio>
+<style>
+@keyframes blinkk{0%,100%{opacity:0.3}50%{opacity:1}}
+@keyframes wobble{0%{transform:rotate(-4deg) scale(1)}50%{transform:rotate(4deg) scale(1.08)}100%{transform:rotate(-4deg) scale(1)}}
+@keyframes screamPulse{0%,100%{transform:scale(1) rotate(-1deg)}50%{transform:scale(1.08) rotate(1deg)}}
+.screaming{animation:wobble 0.25s infinite!important}
+.scream-pulse{animation:screamPulse 0.3s infinite}
+</style>
+</div>
+<script>
+var _introStarted=false;
+function startIntro(){
+  if(_introStarted)return;
+  _introStarted=true;
+  document.getElementById("scream-audio").play();
+  document.getElementById("tap-label").style.display="none";
+  document.getElementById("scream-text").style.display="block";
+  document.getElementById("scream-text").classList.add("scream-pulse");
+  document.getElementById("wojak-svg").classList.add("screaming");
+  // Open mouth
+  var svg=document.getElementById("wojak-svg");
+  var mouth=document.createElementNS("http://www.w3.org/2000/svg","ellipse");
+  mouth.setAttribute("cx","100");mouth.setAttribute("cy","152");
+  mouth.setAttribute("rx","28");mouth.setAttribute("ry","22");
+  mouth.setAttribute("fill","#1a0000");mouth.setAttribute("stroke","#222");
+  mouth.setAttribute("stroke-width","2.5");
+  svg.appendChild(mouth);
+  ["82,138,11,10","95,136,11,12","108,138,11,10"].forEach(function(d){
+    var p=d.split(",");
+    var r=document.createElementNS("http://www.w3.org/2000/svg","rect");
+    r.setAttribute("x",p[0]);r.setAttribute("y",p[1]);r.setAttribute("width",p[2]);r.setAttribute("height",p[3]);
+    r.setAttribute("rx","2");r.setAttribute("fill","white");r.setAttribute("stroke","#ccc");r.setAttribute("stroke-width","1");
+    svg.appendChild(r);
+  });
+  setTimeout(function(){
+    var gate=document.getElementById("tap-gate");
+    gate.style.transition="opacity 0.6s";
+    gate.style.opacity="0";
+    setTimeout(function(){gate.remove()},650);
+  },3800);
+}
+</script>
 <div class="hdr">
   <div class="logo" onclick="goHome()">GAM<span>BURU</span></div>
   <div class="hdr-right" id="hdr-right">
