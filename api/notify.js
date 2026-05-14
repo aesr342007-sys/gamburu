@@ -1,8 +1,3 @@
-No — the file only has the first line plus the file tree. You need to paste the full `notify.js` code after that `require` line. The rest of the function got deleted.
-
-Paste the complete file:
-
-```js
 const fetch = require('node-fetch');
 
 const BOT_TOKEN = '8919491630:AAEEZsdmI947oIi-FNvjJEAxVtigtOzLFBs';
@@ -47,4 +42,3 @@ module.exports = async function handler(req, res) {
 function esc(str) {
   return String(str).replace(/([_*[\]()~`>#+\-=|{}.!\\])/g, '\\$1');
 }
-```
