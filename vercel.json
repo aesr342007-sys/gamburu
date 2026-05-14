@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "api/notify.js", "use": "@vercel/node" },
+    { "src": "index.html", "use": "@vercel/static" },
+    { "src": "tonconnect-manifest.json", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/api/notify", "dest": "/api/notify.js" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}
