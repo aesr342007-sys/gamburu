@@ -282,11 +282,7 @@ const firebaseConfig={
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// Arbiter wallet is the escrow holder for v1.
-// Funds sent here; arbiter manually releases to winner after settlement.
-// CONTRACT_ADDRESS kept for reference / future smart contract upgrade.
 const ARBITER_ADDRESS = 'UQBdmD9EzINSYYvXd6P8j-UrS7B6VRB3qUfI_mhHKBVYC3uk';
-const CONTRACT_ADDRESS = 'EQC5VS0Jl8T-HuBSA1e0t8XZRPilyq4Y50jDxoqKgdU3Q2bY';
 
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: 'https://gamburu.xyz/tonconnect-manifest.json',
@@ -343,11 +339,9 @@ async function loadBets(){
   if(!S.wallet) return;
   try {
     if(S.wallet === ARBITER_ADDRESS){
-      // Arbiter sees everything
       const snap = await db.collection('bets').orderBy('createdAt','desc').limit(100).get();
       S.bets = snap.docs.map(d => d.data());
     } else {
-      // Load only bets this wallet is part of (two queries, merge)
       const [asCreator, asCP] = await Promise.all([
         db.collection('bets').where('creator','==',S.wallet).get(),
         db.collection('bets').where('cp','==',S.wallet).get()
@@ -380,62 +374,11 @@ async function updateBet(id, u){
 }
 
 // ─── TON TRANSACTION ──────────────────────────────────────────────────────────
-async function sendTON(betId, amountTON, label){
+async function sendTON(betId, amountTON){
   const amountNano = String(Math.round(amountTON * 1e9));
   return await tonConnectUI.sendTransaction({
     validUntil: Math.floor(Date.now()/1000) + 360,
     messages: [{ address: ARBITER_ADDRESS, amount: amountNano }]
-  });
-}
-
-function buildCommentPayload_UNUSED(text){
-  try {
-    const enc = new TextEncoder().encode(text);
-    // Cell structure: ref count (0) + data bits
-    // bit length = (4 + enc.length) * 8 = 32 + enc.length*8
-    // Simple single-cell BOC encoding
-    const dataBytes = new Uint8Array(4 + enc.length);
-    dataBytes[0]=0; dataBytes[1]=0; dataBytes[2]=0; dataBytes[3]=0; // op=0
-    dataBytes.set(enc, 4);
-
-    // Minimal single-cell BOC: magic + flags + cell descriptor + data
-    const bitLen = dataBytes.length * 8;
-    const d1 = 0x00; // ref count = 0, exotic = 0
-    const d2 = (bitLen >> 2) | (bitLen & 3 ? 1 : 0); // data length descriptor
-    const hasPad = bitLen % 8 !== 0;
-    const cellData = hasPad
-      ? (() => { const d = new Uint8Array(dataBytes.length); d.set(dataBytes); d[d.length-1] |= 0x80 >> (bitLen%8); return d; })()
-      : dataBytes;
-
-    // BOC magic + minimal header
-    const boc = new Uint8Array([
-      0xb5, 0xee, 0x9c, 0x72, // magic
-      0x01,                   // flags: has_idx=0, has_crc=0, has_cache=0, no_roots=0, absent=0, roots=1, cells=1
-      0x01,                   // cells count
-      0x01,                   // roots count
-      0x00,                   // absent count
-      cellData.length + 2,    // total cells size (d1+d2+data)
-      0x00,                   // root index
-      d1, d2,
-      ...cellData
-    ]);
-
-    return btoa(String.fromCharCode(...boc));
-  } catch(e){
-    console.warn('buildCommentPayload failed, sending without payload:', e);
-    return undefined;
-  }
-}
-
-async function sendTON(betId, amountTON, label){
-  const amountNano = String(Math.round(amountTON * 1e9));
-  const payload = buildCommentPayload(`GAMBURU:${betId}:${label}`);
-  const msg = { address: ARBITER_ADDRESS, amount: amountNano };
-  if(payload) msg.payload = payload;
-
-  return await tonConnectUI.sendTransaction({
-    validUntil: Math.floor(Date.now()/1000) + 360,
-    messages: [msg]
   });
 }
 
@@ -519,8 +462,7 @@ async function createBet(){
   const cpAmt = parseFloat((amt*o2/o1).toFixed(4));
 
   try {
-    // TON transaction disabled for testnet testing — re-enable on mainnet
-    // await sendTON(id, amt, 'CREATOR');
+    await sendTON(id, amt);
     const bet = {
       id, title, s1, s2,
       o:`${o1}:${o2}`, on:o1, od:o2,
@@ -642,8 +584,7 @@ async function acceptBet(id){
   if(btn){ btn.textContent='Waiting for wallet...'; btn.disabled=true }
 
   try {
-    // TON transaction disabled for testnet testing — re-enable on mainnet
-    // await sendTON(id, b.cpAmt, 'ACCEPTOR');
+    await sendTON(id, b.cpAmt);
     await updateBet(id, {cp: S.wallet, pot: parseFloat((b.amt+b.cpAmt).toFixed(4)), status:'active'});
     notify('accepted', {...b, cp: S.wallet, pot: parseFloat((b.amt+b.cpAmt).toFixed(4)), status:'active'});
     S.pendingAcceptId = null;
